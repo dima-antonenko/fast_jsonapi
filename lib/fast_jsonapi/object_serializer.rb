@@ -36,71 +36,72 @@ module FastJsonapi
     end
     alias_method :to_hash, :serializable_hash
 
-#     def hash_for_one_record
-#       serializable_hash = { data: nil }
-#       serializable_hash[:meta] = @meta if @meta.present?
-#       serializable_hash[:links] = @links if @links.present?
-
-#       return serializable_hash unless @resource
-
-#       serializable_hash[:data] = self.class.record_hash(@resource, @fieldsets[self.class.record_type.to_sym], @params)
-#       serializable_hash[:included] = self.class.get_included_records(@resource, @includes, @known_included_objects, @fieldsets, @params) if @includes.present?
-#       serializable_hash
-#     end
-    
     def hash_for_one_record
-      data = self.class.record_hash(@resource, @fieldsets[self.class.record_type.to_sym], @params)
-      serializable_hash = { id: data[:id], type: data[:type] }
-      serializable_hash.merge!(data[:attributes])
+      serializable_hash = { data: nil }
       serializable_hash[:meta] = @meta if @meta.present?
       serializable_hash[:links] = @links if @links.present?
 
       return serializable_hash unless @resource
 
-      # serializable_hash[:data] = self.class.record_hash(@resource, @fieldsets[self.class.record_type.to_sym], @params)
+      serializable_hash[:data] = self.class.record_hash(@resource, @fieldsets[self.class.record_type.to_sym], @params)
       serializable_hash[:included] = self.class.get_included_records(@resource, @includes, @known_included_objects, @fieldsets, @params) if @includes.present?
       serializable_hash
     end
 
-#     def hash_for_collection
-#       serializable_hash = {}
+    # def hash_for_one_record
+    #   data = self.class.record_hash(@resource, @fieldsets[self.class.record_type.to_sym], @params)
+    #   serializable_hash = { id: data[:id], type: data[:type] }
+    #   serializable_hash.merge!(data[:attributes])
+    #   serializable_hash[:meta] = @meta if @meta.present?
+    #   serializable_hash[:links] = @links if @links.present?
+    #
+    #   return serializable_hash unless @resource
+    #
+    #   # serializable_hash[:data] = self.class.record_hash(@resource, @fieldsets[self.class.record_type.to_sym], @params)
+    #   serializable_hash[:included] = self.class.get_included_records(@resource, @includes, @known_included_objects, @fieldsets, @params) if @includes.present?
+    #   serializable_hash
+    # end
 
-#       data = []
-#       included = []
-#       fieldset = @fieldsets[self.class.record_type.to_sym]
-#       @resource.each do |record|
-#         data << self.class.record_hash(record, fieldset, @params)
-#         included.concat self.class.get_included_records(record, @includes, @known_included_objects, @fieldsets, @params) if @includes.present?
-#       end
-
-#       serializable_hash[:data] = data
-#       serializable_hash[:included] = included if @includes.present?
-#       serializable_hash[:meta] = @meta if @meta.present?
-#       serializable_hash[:links] = @links if @links.present?
-#       serializable_hash
-#     end
-    
     def hash_for_collection
-      serializable_hash = []
-      item = {}
+      serializable_hash = {}
 
       data = []
       included = []
       fieldset = @fieldsets[self.class.record_type.to_sym]
       @resource.each do |record|
-        r = self.class.record_hash(record, fieldset, @params)
-        item.merge!({ id: r[:id], type: r[:type] })
-        item.merge!(r[:attributes])
-        item.merge! self.class.get_included_records(record, @includes, @known_included_objects, @fieldsets, @params) if @includes.present?
+        data << self.class.record_hash(record, fieldset, @params)
+        included.concat self.class.get_included_records(record, @includes, @known_included_objects, @fieldsets, @params) if @includes.present?
       end
-      
-      item[:included] = included if @includes.present?
-      item[:meta] = @meta if @meta.present?
-      item[:links] = @links if @links.present?
-      serializable_hash << item
 
+      serializable_hash[:data] = data
+      serializable_hash[:included] = included if @includes.present?
+      serializable_hash[:meta] = @meta if @meta.present?
+      serializable_hash[:links] = @links if @links.present?
       serializable_hash
     end
+
+    # def hash_for_collection
+    #   serializable_hash = []
+    #   item = {}
+    #
+    #   data = []
+    #   included = []
+    #   fieldset = @fieldsets[self.class.record_type.to_sym]
+    #   @resource.each do |record|
+    #     r = self.class.record_hash(record, fieldset, @params)
+    #     output = {
+    #       id: r[:id],
+    #       type: r[:type],
+    #     }.merge!(r[:attributes])
+    #     output.merge!({ included: included }) if @includes.present?
+    #     output.merge!({ meta: @meta }) if @meta.present?
+    #     output.merge!({ links: @links }) if @links.present?
+    #     output.merge! self.class.get_included_records(record, @includes, @known_included_objects, @fieldsets, @params) if @includes.present?
+    #     serializable_hash << output
+    #   end
+    #
+    #   serializable_hash
+    # end
 
     def serialized_json
       ActiveSupport::JSON.encode(serializable_hash)
