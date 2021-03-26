@@ -62,21 +62,43 @@ module FastJsonapi
       serializable_hash
     end
 
+#     def hash_for_collection
+#       serializable_hash = {}
+
+#       data = []
+#       included = []
+#       fieldset = @fieldsets[self.class.record_type.to_sym]
+#       @resource.each do |record|
+#         data << self.class.record_hash(record, fieldset, @params)
+#         included.concat self.class.get_included_records(record, @includes, @known_included_objects, @fieldsets, @params) if @includes.present?
+#       end
+
+#       serializable_hash[:data] = data
+#       serializable_hash[:included] = included if @includes.present?
+#       serializable_hash[:meta] = @meta if @meta.present?
+#       serializable_hash[:links] = @links if @links.present?
+#       serializable_hash
+#     end
+    
     def hash_for_collection
-      serializable_hash = {}
+      serializable_hash = []
+      item = {}
 
       data = []
       included = []
       fieldset = @fieldsets[self.class.record_type.to_sym]
       @resource.each do |record|
-        data << self.class.record_hash(record, fieldset, @params)
-        included.concat self.class.get_included_records(record, @includes, @known_included_objects, @fieldsets, @params) if @includes.present?
+        r = self.class.record_hash(record, fieldset, @params)
+        item.merge!({ id: r[:id], type: r[:type] })
+        item.merge!(r[:attributes])
+        item.merge! self.class.get_included_records(record, @includes, @known_included_objects, @fieldsets, @params) if @includes.present?
       end
+      
+      item[:included] = included if @includes.present?
+      item[:meta] = @meta if @meta.present?
+      item[:links] = @links if @links.present?
+      serializable_hash << item
 
-      serializable_hash[:data] = data
-      serializable_hash[:included] = included if @includes.present?
-      serializable_hash[:meta] = @meta if @meta.present?
-      serializable_hash[:links] = @links if @links.present?
       serializable_hash
     end
 
