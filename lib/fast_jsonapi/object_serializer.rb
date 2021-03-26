@@ -50,8 +50,8 @@ module FastJsonapi
     
     def hash_for_one_record
       data = self.class.record_hash(@resource, @fieldsets[self.class.record_type.to_sym], @params)
-      serializable_hash = data[:attributes]
-      serializable_hash.merge!({ id: data[:id], type: data[:type] })
+      serializable_hash = { id: data[:id], type: data[:type] }
+      serializable_hash.merge!(data[:attributes])
       serializable_hash[:meta] = @meta if @meta.present?
       serializable_hash[:links] = @links if @links.present?
 
